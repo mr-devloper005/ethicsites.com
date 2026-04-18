@@ -8,7 +8,7 @@ export const SITE_RECIPE: SiteRecipe = {
   footerTemplate: 'columns-footer',
   motionPack: 'editorial-soft',
   primaryTask: 'article',
-  enabledTasks: ['article', 'profile'],
+  enabledTasks: ['profile'],
   taskTemplates: {
     article: 'article-journal',
     profile: 'profile-business',
