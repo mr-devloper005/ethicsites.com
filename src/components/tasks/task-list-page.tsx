@@ -1,10 +1,11 @@
 import Link from 'next/link'
-import { ArrowRight, Building2, FileText, Image as ImageIcon, LayoutGrid, Tag, User } from 'lucide-react'
+import { ArrowRight, ArrowUpRight, Building2, FileText, Image as ImageIcon, LayoutGrid, Plus, Sparkles, Tag, User } from 'lucide-react'
 import { NavbarShell } from '@/components/shared/navbar-shell'
 import { Footer } from '@/components/shared/footer'
+import { ContentImage } from '@/components/shared/content-image'
 import { TaskListClient } from '@/components/tasks/task-list-client'
 import { SchemaJsonLd } from '@/components/seo/schema-jsonld'
-import { fetchTaskPosts } from '@/lib/task-data'
+import { buildPostUrl, fetchTaskPosts, getPostImages } from '@/lib/task-data'
 import { SITE_CONFIG, getTaskConfig, type TaskKey } from '@/lib/site-config'
 import { CATEGORY_OPTIONS, normalizeCategory } from '@/lib/categories'
 import { taskIntroCopy } from '@/config/site.content'
@@ -30,9 +31,9 @@ const variantShells = {
   'article-editorial': 'bg-[radial-gradient(circle_at_top_left,rgba(251,191,36,0.08),transparent_20%),linear-gradient(180deg,#fff8ef_0%,#ffffff_100%)]',
   'article-journal': 'bg-[linear-gradient(180deg,#fffdf9_0%,#f7f1ea_100%)]',
   'image-masonry': 'bg-[linear-gradient(180deg,#09101d_0%,#111c2f_100%)] text-white',
-  'image-portfolio': 'bg-[linear-gradient(180deg,#07111f_0%,#13203a_100%)] text-white',
+  'image-portfolio': 'bg-[linear-gradient(180deg,#F5F2EB_0%,#ffffff_100%)] text-[#1A3D2F]',
   'profile-creator': 'bg-[linear-gradient(180deg,#0a1120_0%,#101c34_100%)] text-white',
-  'profile-business': 'bg-[linear-gradient(180deg,#f6fbff_0%,#ffffff_100%)]',
+  'profile-business': 'bg-[linear-gradient(180deg,#F5F2EB_0%,#faf8f5_100%)] text-[#1A3D2F]',
   'classified-bulletin': 'bg-[linear-gradient(180deg,#edf3e4_0%,#ffffff_100%)]',
   'classified-market': 'bg-[linear-gradient(180deg,#f4f6ef_0%,#ffffff_100%)]',
   'sbm-curation': 'bg-[linear-gradient(180deg,#fff7ee_0%,#ffffff_100%)]',
@@ -57,10 +58,27 @@ export async function TaskListPage({ task, category }: { task: TaskKey; category
   }))
   const { recipe } = getFactoryState()
   const layoutKey = recipe.taskLayouts[task as keyof typeof recipe.taskLayouts] || `${task}-${task === 'listing' ? 'directory' : 'editorial'}`
-  const shellClass = variantShells[layoutKey as keyof typeof variantShells] || 'bg-background'
+
+  /** Theme packs often omit `image` in taskLayouts → layoutKey becomes `image-editorial` and skips all gallery UI. */
+  const recipeImageLayout = recipe.taskLayouts.image as string | undefined
+  const imageGalleryLayout: 'image-portfolio' | 'image-masonry' | null =
+    task === 'image'
+      ? recipeImageLayout === 'image-masonry' || recipeImageLayout === 'image-portfolio'
+        ? (recipeImageLayout as 'image-portfolio' | 'image-masonry')
+        : 'image-portfolio'
+      : null
+
+  const shellClass =
+    imageGalleryLayout != null
+      ? variantShells[imageGalleryLayout]
+      : variantShells[layoutKey as keyof typeof variantShells] || 'bg-background'
   const Icon = taskIcons[task] || LayoutGrid
 
-  const isDark = ['image-masonry', 'image-portfolio', 'profile-creator'].includes(layoutKey)
+  const isDark =
+    imageGalleryLayout === 'image-masonry' ||
+    (task !== 'image' && ['image-masonry', 'profile-creator'].includes(layoutKey))
+  const isBrandLight =
+    imageGalleryLayout === 'image-portfolio' || layoutKey === 'image-portfolio' || layoutKey === 'profile-business'
   const ui = isDark
     ? {
         muted: 'text-slate-300',
@@ -69,6 +87,14 @@ export async function TaskListPage({ task, category }: { task: TaskKey; category
         input: 'border-white/10 bg-white/6 text-white',
         button: 'bg-white text-slate-950 hover:bg-slate-200',
       }
+    : isBrandLight
+      ? {
+          muted: 'text-[#1A3D2F]/70',
+          panel: 'border border-[#1A3D2F]/12 bg-white/95 shadow-[0_20px_50px_rgba(26,61,47,0.07)]',
+          soft: 'border border-[#1A3D2F]/10 bg-[#F5F2EB]',
+          input: 'border border-[#1A3D2F]/15 bg-white text-[#1A3D2F]',
+          button: 'bg-[#1A3D2F] text-white hover:bg-[#234d3e]',
+        }
     : layoutKey.startsWith('article') || layoutKey.startsWith('sbm')
       ? {
           muted: 'text-[#72594a]',
@@ -169,31 +195,175 @@ export async function TaskListPage({ task, category }: { task: TaskKey; category
           </section>
         ) : null}
 
-        {layoutKey === 'image-masonry' || layoutKey === 'image-portfolio' ? (
-          <section className="mb-12 grid gap-6 lg:grid-cols-[0.95fr_1.05fr] lg:items-center">
+        {task === 'image' && imageGalleryLayout ? (
+          <section className="mb-12 grid gap-8 lg:grid-cols-[0.92fr_1.08fr] lg:items-center">
             <div>
               <div className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.22em] ${ui.soft}`}>
-                <Icon className="h-3.5 w-3.5" /> Visual feed
+                <Icon className="h-3.5 w-3.5" /> Gallery
               </div>
-              <h1 className="mt-5 text-5xl font-semibold tracking-[-0.05em]">{taskConfig?.description || 'Latest posts'}</h1>
-              <p className={`mt-5 max-w-2xl text-sm leading-8 ${ui.muted}`}>This surface leans into stronger imagery, larger modules, and more expressive spacing so visual content feels materially different from reading and directory pages.</p>
+              <h1 className="mt-5 font-display text-[2.65rem] font-semibold leading-[1.05] tracking-[-0.05em] text-inherit sm:text-5xl">
+                {imageGalleryLayout === 'image-portfolio' ? (
+                  <>
+                    Curated <span className="text-[#C29B6D]">visual stories</span>—frames, light, and texture.
+                  </>
+                ) : (
+                  taskConfig?.description || 'Image gallery'
+                )}
+              </h1>
+              <p className={`mt-5 max-w-2xl text-sm leading-8 ${ui.muted}`}>
+                {imageGalleryLayout === 'image-portfolio'
+                  ? 'Scroll a gallery built like a museum wall: large tiles, gentle motion on hover, and categories when you want to narrow the mood.'
+                  : 'Browse photography and visual stories in a calm, editorial layout—generous spacing, forest-and-gold accents, and imagery first.'}
+              </p>
+              {imageGalleryLayout === 'image-portfolio' ? (
+                <div className="mt-8 flex flex-wrap items-center gap-3">
+                  <Link
+                    href="/create/image"
+                    className={`inline-flex items-center gap-2 rounded-full px-5 py-3 text-sm font-semibold shadow-[0_10px_30px_rgba(26,61,47,0.18)] ${ui.button}`}
+                  >
+                    <Plus className="h-4 w-4" strokeWidth={2.5} />
+                    Create
+                    <ArrowUpRight className="h-4 w-4 opacity-90" />
+                  </Link>
+                  <Link
+                    href="/search?task=image"
+                    className={`inline-flex items-center gap-2 rounded-full border border-[#1A3D2F]/18 bg-white px-5 py-3 text-sm font-semibold text-[#1A3D2F] shadow-sm transition hover:border-[#C29B6D]/45`}
+                  >
+                    <Sparkles className="h-4 w-4 text-[#C29B6D]" />
+                    Search gallery
+                  </Link>
+                </div>
+              ) : null}
+              {imageGalleryLayout === 'image-masonry' ? (
+                <div className="mt-8 flex flex-wrap items-center gap-3">
+                  <Link
+                    href="/create/image"
+                    className={`inline-flex items-center gap-2 rounded-full px-5 py-3 text-sm font-semibold ${ui.button}`}
+                  >
+                    <Plus className="h-4 w-4" strokeWidth={2.5} />
+                    Create
+                    <ArrowUpRight className="h-4 w-4 opacity-90" />
+                  </Link>
+                  <Link
+                    href="/search?task=image"
+                    className={`inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-5 py-3 text-sm font-semibold text-white backdrop-blur-sm transition hover:bg-white/15`}
+                  >
+                    <Sparkles className="h-4 w-4 text-[#8df0c8]" />
+                    Search gallery
+                  </Link>
+                </div>
+              ) : null}
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className={`min-h-[220px] rounded-[2rem] ${ui.panel}`} />
-              <div className={`min-h-[220px] rounded-[2rem] ${ui.soft}`} />
-              <div className={`col-span-2 min-h-[120px] rounded-[2rem] ${ui.panel}`} />
-            </div>
+            {imageGalleryLayout === 'image-portfolio' && posts.length ? (
+              <div className="relative">
+                <div className="pointer-events-none absolute -left-3 top-10 hidden text-[#C29B6D]/80 lg:block">
+                  <Sparkles className="h-5 w-5" />
+                </div>
+                <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                  {posts.slice(0, 4).map((post, index) => {
+                    const thumb = getPostImages(post)[0] || '/placeholder.svg?height=640&width=480'
+                    const href = buildPostUrl('image', post.slug)
+                    const cell =
+                      index === 0
+                        ? 'row-span-2 min-h-[260px] sm:min-h-[300px]'
+                        : index === 3
+                          ? 'col-span-2 min-h-[110px] sm:min-h-[128px]'
+                          : 'min-h-[120px] sm:min-h-[134px]'
+                    return (
+                      <Link
+                        key={post.id}
+                        href={href}
+                        className={`group relative overflow-hidden rounded-[1.65rem] border border-[#1A3D2F]/10 bg-white shadow-[0_16px_44px_rgba(26,61,47,0.1)] transition hover:-translate-y-0.5 hover:shadow-[0_22px_56px_rgba(26,61,47,0.14)] ${cell}`}
+                      >
+                        <ContentImage
+                          src={thumb}
+                          alt={post.title}
+                          fill
+                          className="object-cover transition duration-500 group-hover:scale-[1.04]"
+                        />
+                        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#1A3D2F]/45 via-transparent to-transparent opacity-90" />
+                        {index === 0 ? (
+                          <span className="absolute bottom-4 left-4 max-w-[90%] font-display text-lg font-semibold text-white drop-shadow-sm sm:text-xl">
+                            {post.title}
+                          </span>
+                        ) : null}
+                      </Link>
+                    )
+                  })}
+                </div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-4">
+                <div className={`min-h-[220px] rounded-[2rem] ${ui.panel}`} />
+                <div className={`min-h-[220px] rounded-[2rem] ${ui.soft}`} />
+                <div className={`col-span-2 min-h-[120px] rounded-[2rem] ${ui.panel}`} />
+              </div>
+            )}
           </section>
         ) : null}
 
         {layoutKey === 'profile-creator' || layoutKey === 'profile-business' ? (
-          <section className={`mb-12 rounded-[2.2rem] p-8 shadow-[0_24px_70px_rgba(15,23,42,0.1)] ${ui.panel}`}>
-            <div className="grid gap-6 lg:grid-cols-[0.8fr_1.2fr] lg:items-center">
-              <div className={`min-h-[240px] rounded-[2rem] ${ui.soft}`} />
+          <section className={`mb-12 rounded-[2.2rem] p-8 shadow-[0_24px_70px_rgba(26,61,47,0.08)] sm:p-10 ${ui.panel}`}>
+            <div className="grid gap-8 lg:grid-cols-[0.85fr_1.15fr] lg:items-center">
+              {layoutKey === 'profile-business' && posts.length ? (
+                <div className="grid grid-cols-2 gap-3 sm:max-w-md">
+                  {posts.slice(0, 4).map((post, index) => {
+                    const thumb = getPostImages(post)[0] || '/placeholder.svg?height=200&width=200'
+                    const href = buildPostUrl('profile', post.slug)
+                    return (
+                      <Link
+                        key={post.id}
+                        href={href}
+                        className={`relative aspect-square overflow-hidden rounded-full border-2 border-white shadow-[0_12px_32px_rgba(26,61,47,0.12)] ring-2 ring-[#1A3D2F]/8 transition hover:-translate-y-0.5 hover:ring-[#C29B6D]/40 ${index === 1 ? 'sm:translate-x-2 sm:-translate-y-2' : index === 2 ? 'sm:-translate-x-1 sm:translate-y-1' : index === 3 ? 'sm:translate-x-2' : ''}`}
+                      >
+                        <ContentImage src={thumb} alt={post.title} fill className="object-cover grayscale transition duration-500 hover:grayscale-0" />
+                      </Link>
+                    )
+                  })}
+                </div>
+              ) : (
+                <div className={`min-h-[240px] rounded-[2rem] ${ui.soft}`} />
+              )}
               <div>
-                <p className={`text-xs uppercase tracking-[0.3em] ${ui.muted}`}>{taskConfig?.label || task}</p>
-                <h1 className="mt-3 text-4xl font-semibold tracking-[-0.05em] text-foreground">Profiles with stronger identity, trust, and reputation cues.</h1>
-                <p className={`mt-5 max-w-2xl text-sm leading-8 ${ui.muted}`}>This layout prioritizes the person or business surface first, then lets the feed continue below without borrowing the same visual logic used by articles or listings.</p>
+                <p className={`text-xs font-semibold uppercase tracking-[0.3em] ${ui.muted}`}>{taskConfig?.label || task}</p>
+                <h1 className="mt-3 font-display text-4xl font-semibold tracking-[-0.05em] text-inherit sm:text-[2.5rem] sm:leading-tight">
+                  {layoutKey === 'profile-business' ? (
+                    <>
+                      Photographers &amp; <span className="text-[#C29B6D]">visual artists</span>, in one directory.
+                    </>
+                  ) : (
+                    'Profiles with stronger identity, trust, and reputation cues.'
+                  )}
+                </h1>
+                <p className={`mt-5 max-w-2xl text-sm leading-8 ${ui.muted}`}>
+                  {layoutKey === 'profile-business'
+                    ? 'Each card opens a calmer profile surface—specialty, region, and story—so you can find the right collaborator without wading through unrelated listings.'
+                    : 'This layout prioritizes the person or business surface first, then lets the feed continue below without borrowing the same visual logic used by articles or listings.'}
+                </p>
+                {layoutKey === 'profile-business' ? (
+                  <div className="mt-8 flex flex-wrap gap-3">
+                    <Link
+                      href="/create/profile"
+                      className={`inline-flex items-center gap-2 rounded-full px-5 py-3 text-sm font-semibold ${ui.button}`}
+                    >
+                      <Plus className="h-4 w-4" strokeWidth={2.5} />
+                      Create profile
+                      <ArrowUpRight className="h-4 w-4 opacity-90" />
+                    </Link>
+                    <Link
+                      href="/register"
+                      className={`inline-flex items-center gap-2 rounded-full border border-[#1A3D2F]/18 bg-white px-5 py-3 text-sm font-semibold text-[#1A3D2F] shadow-sm transition hover:border-[#C29B6D]/45`}
+                    >
+                      Join as photographer
+                    </Link>
+                    <Link
+                      href="/search?task=profile"
+                      className={`inline-flex items-center gap-2 rounded-full border border-[#1A3D2F]/18 bg-[#F5F2EB] px-5 py-3 text-sm font-semibold text-[#1A3D2F] transition hover:border-[#C29B6D]/45`}
+                    >
+                      Search profiles
+                    </Link>
+                  </div>
+                ) : null}
               </div>
             </div>
           </section>
@@ -237,6 +407,62 @@ export async function TaskListPage({ task, category }: { task: TaskKey; category
           </section>
         ) : null}
 
+        {((task === 'image' && taskConfig?.route) || (task === 'profile' && layoutKey === 'profile-business' && taskConfig?.route)) ? (
+          <div
+            className={`mb-10 flex flex-col gap-4 rounded-[1.75rem] border p-5 sm:flex-row sm:items-stretch sm:gap-5 ${
+              task === 'image' && imageGalleryLayout === 'image-masonry'
+                ? 'border-white/12 bg-[rgba(9,16,29,0.55)] shadow-[0_20px_50px_rgba(0,0,0,0.25)] backdrop-blur-md'
+                : isBrandLight
+                  ? 'border-[#1A3D2F]/10 bg-white/90 shadow-[0_14px_40px_rgba(26,61,47,0.06)]'
+                  : `${ui.panel}`
+            }`}
+          >
+            <form className="flex min-w-0 flex-1 flex-col gap-4 sm:flex-row sm:items-end sm:gap-4" action={taskConfig.route} method="get">
+              <div className="min-w-0 flex-1">
+                <label className={`block text-xs font-semibold uppercase tracking-[0.2em] ${ui.muted}`}>Filter by category</label>
+                <select name="category" defaultValue={normalizedCategory} className={`mt-2 h-12 w-full rounded-xl px-3 text-sm ${ui.input}`}>
+                  <option value="all">All categories</option>
+                  {CATEGORY_OPTIONS.map((item) => (
+                    <option key={item.slug} value={item.slug}>
+                      {item.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <button type="submit" className={`h-12 shrink-0 rounded-full px-8 text-sm font-semibold sm:min-w-[120px] ${ui.button}`}>
+                Apply
+              </button>
+            </form>
+            {task === 'image' ? (
+              <div className="flex shrink-0 flex-col justify-end gap-2 sm:items-end">
+                <span className={`hidden text-[10px] font-semibold uppercase tracking-[0.2em] sm:block ${ui.muted}`}>Publish</span>
+                <Link
+                  href="/create/image"
+                  className={`inline-flex h-12 items-center justify-center gap-2 rounded-full px-6 text-sm font-semibold transition sm:min-w-[148px] ${
+                    imageGalleryLayout === 'image-masonry'
+                      ? 'bg-[#8df0c8] text-[#07111f] hover:bg-[#77dfb8]'
+                      : 'bg-[#1A3D2F] text-white shadow-[0_10px_28px_rgba(26,61,47,0.2)] hover:bg-[#234d3e]'
+                  }`}
+                >
+                  <Plus className="h-4 w-4" strokeWidth={2.5} />
+                  Create
+                </Link>
+              </div>
+            ) : task === 'profile' && layoutKey === 'profile-business' ? (
+              <div className="flex shrink-0 flex-col justify-end gap-2 sm:items-end">
+                <span className={`hidden text-[10px] font-semibold uppercase tracking-[0.2em] sm:block ${ui.muted}`}>Directory</span>
+                <Link
+                  href="/create/profile"
+                  className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#1A3D2F] px-6 text-sm font-semibold text-white shadow-[0_10px_28px_rgba(26,61,47,0.2)] transition hover:bg-[#234d3e] sm:min-w-[160px]"
+                >
+                  <Plus className="h-4 w-4" strokeWidth={2.5} />
+                  Create profile
+                </Link>
+              </div>
+            ) : null}
+          </div>
+        ) : null}
+
         {intro ? (
           <section className={`mb-12 rounded-[2rem] p-6 shadow-[0_18px_50px_rgba(15,23,42,0.06)] sm:p-8 ${ui.panel}`}>
             <h2 className="text-2xl font-semibold text-foreground">{intro.title}</h2>
@@ -251,7 +477,12 @@ export async function TaskListPage({ task, category }: { task: TaskKey; category
           </section>
         ) : null}
 
-        <TaskListClient task={task} initialPosts={posts} category={normalizedCategory} />
+        <TaskListClient
+          task={task}
+          initialPosts={posts}
+          category={normalizedCategory}
+          galleryToolbar={task === 'image' && imageGalleryLayout === 'image-masonry' ? 'dark' : 'light'}
+        />
       </main>
       <Footer />
     </div>

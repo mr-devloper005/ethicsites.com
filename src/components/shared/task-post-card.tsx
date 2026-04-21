@@ -79,6 +79,13 @@ const cardStyles = {
     title: 'text-[#1f2617]',
     badge: 'bg-[#1f2617] text-[#edf5dc]',
   },
+  /** Cream / forest gallery (image-portfolio & profile-business layouts) */
+  'forest-gallery': {
+    frame: 'rounded-[1.85rem] border border-[#1A3D2F]/10 bg-white shadow-[0_18px_50px_rgba(26,61,47,0.08)] hover:-translate-y-1 hover:border-[#C29B6D]/35 hover:shadow-[0_26px_64px_rgba(26,61,47,0.12)]',
+    muted: 'text-[#1A3D2F]/68',
+    title: 'text-[#1A3D2F]',
+    badge: 'border border-[#1A3D2F]/12 bg-[#F5F2EB] text-[#1A3D2F]',
+  },
 } as const
 
 const getVariantForTask = (taskKey: TaskKey) => SITE_THEME.cards[taskKey] || 'listing-elevated'
@@ -104,15 +111,39 @@ export function TaskPostCard({
   const normalizedCategory = normalizeCategory(rawCategory)
   const category = CATEGORY_OPTIONS.find((item) => item.slug === normalizedCategory)?.name || rawCategory
   const variant = taskKey || 'listing'
-  const visualVariant = cardStyles[getVariantForTask(variant)]
+  const { recipe } = getFactoryState()
+  const layoutKey = recipe.taskLayouts[variant as keyof typeof recipe.taskLayouts]
+  const recipeImageLayout = recipe.taskLayouts.image as string | undefined
+  const imageForestCards =
+    variant === 'image' &&
+    (recipeImageLayout === 'image-portfolio' ||
+      recipeImageLayout === 'image-masonry' ||
+      recipeImageLayout === undefined)
+  const useForestGallery =
+    imageForestCards || (variant === 'profile' && layoutKey === 'profile-business')
+  const visualVariant = useForestGallery
+    ? cardStyles['forest-gallery']
+    : cardStyles[getVariantForTask(variant)]
   const isBookmarkVariant = variant === 'sbm' || variant === 'social'
-  const imageAspect = variant === 'image' ? 'aspect-[4/5]' : variant === 'article' ? 'aspect-[16/10]' : variant === 'pdf' ? 'aspect-[4/5]' : variant === 'classified' ? 'aspect-[16/11]' : 'aspect-[4/3]'
+  const imageAspect =
+    variant === 'image'
+      ? 'aspect-[4/5]'
+      : variant === 'article'
+        ? 'aspect-[16/10]'
+        : variant === 'pdf'
+          ? 'aspect-[4/5]'
+          : variant === 'classified'
+            ? 'aspect-[16/11]'
+            : useForestGallery && variant === 'profile'
+              ? 'aspect-[1/1]'
+              : 'aspect-[4/3]'
   const altText = `${post.title} ${category} ${variant === 'listing' ? 'business listing' : variant} image`
   const imageSizes = variant === 'article' ? '(max-width: 640px) 90vw, (max-width: 1024px) 48vw, 420px' : variant === 'image' ? '(max-width: 640px) 82vw, (max-width: 1024px) 34vw, 320px' : '(max-width: 640px) 85vw, (max-width: 1024px) 42vw, 340px'
 
-  const { recipe } = getFactoryState()
   const isDirectoryProduct = recipe.homeLayout === 'listing-home' || recipe.homeLayout === 'classified-home'
-  const isDirectorySurface = isDirectoryProduct && (variant === 'listing' || variant === 'classified' || variant === 'profile')
+  const isDirectorySurface =
+    isDirectoryProduct &&
+    (variant === 'listing' || variant === 'classified' || (variant === 'profile' && !useForestGallery))
 
   if (isDirectorySurface) {
     const cardTone = recipe.brandPack === 'market-utility'
@@ -185,9 +216,17 @@ export function TaskPostCard({
 
   return (
     <Link href={href} className={`group flex h-full flex-col overflow-hidden transition duration-300 ${visualVariant.frame}`}>
-      <div className={`relative ${imageAspect} overflow-hidden bg-[#ede2dc]`}>
+      <div
+        className={`relative ${imageAspect} overflow-hidden ${useForestGallery ? 'bg-[#e8ebe8]' : 'bg-[#ede2dc]'}`}
+      >
         <ContentImage src={image} alt={altText} fill sizes={imageSizes} quality={75} className="object-cover transition-transform duration-500 group-hover:scale-[1.04]" intrinsicWidth={960} intrinsicHeight={720} />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-transparent opacity-80" />
+        <div
+          className={
+            useForestGallery
+              ? 'pointer-events-none absolute inset-0 bg-gradient-to-t from-[#1A3D2F]/25 via-transparent to-transparent opacity-90'
+              : 'absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-transparent opacity-80'
+          }
+        />
         <span className={`absolute left-4 top-4 inline-flex items-center gap-1 rounded-full px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] ${visualVariant.badge}`}>
           <Tag className="h-3.5 w-3.5" />
           {category}
