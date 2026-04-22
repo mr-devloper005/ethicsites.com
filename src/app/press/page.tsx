@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/dialog'
 import { useToast } from '@/components/ui/use-toast'
 import { mockPressAssets, mockPressCoverage } from '@/data/mock-data'
+import { brandMuted, brandSoft, brandSurface } from '@/components/shared/brand-surfaces'
 
 export default function PressPage() {
   const { toast } = useToast()
@@ -24,22 +25,22 @@ export default function PressPage() {
   return (
     <PageShell
       title="Press"
-      description="Media resources, brand assets, and press coverage."
+      description="Brand story, photography-forward product notes, and downloadable assets for journalists."
     >
       <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-        <Card className="border-border bg-card">
-          <CardContent className="p-6 space-y-3">
-            <h2 className="text-lg font-semibold text-foreground">Press Kit</h2>
-            <p className="text-sm text-muted-foreground">
-              Download logos, product screenshots, and brand guidelines for media use.
+        <Card className={`${brandSurface} border-0 shadow-none`}>
+          <CardContent className="space-y-3 p-6">
+            <h2 className="font-display text-lg font-semibold text-[#1A3D2F]">Press kit</h2>
+            <p className={`text-sm ${brandMuted}`}>
+              Logos, UI captures, and narrative guidance aligned with our forest, cream, and gold palette.
             </p>
             <div className="grid gap-2">
               {mockPressAssets.map((asset) => (
-                <div key={asset.id} className="rounded-lg border border-border bg-secondary/40 px-4 py-3">
+                <div key={asset.id} className={`rounded-2xl px-4 py-3 ${brandSoft}`}>
                   <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                     <div>
-                      <p className="text-sm font-medium text-foreground">{asset.title}</p>
-                      <p className="text-xs text-muted-foreground">{asset.description}</p>
+                      <p className="text-sm font-medium text-[#1A3D2F]">{asset.title}</p>
+                      <p className={`text-xs ${brandMuted}`}>{asset.description}</p>
                     </div>
                     <div className="flex items-center gap-2">
                       <Badge variant="secondary">{asset.fileType}</Badge>
@@ -66,11 +67,11 @@ export default function PressPage() {
         </Card>
         <div className="space-y-4">
           {mockPressCoverage.map((item) => (
-            <Card key={item.id} className="border-border bg-card transition-transform hover:-translate-y-1">
+            <Card key={item.id} className={`${brandSurface} border-0 shadow-none transition-transform hover:-translate-y-0.5`}>
               <CardContent className="p-6">
-                <div className="text-xs uppercase tracking-wide text-muted-foreground">{item.outlet}</div>
-                <p className="mt-2 text-sm text-foreground">{item.headline}</p>
-                <p className="mt-2 text-xs text-muted-foreground">{item.date}</p>
+                <div className={`text-xs font-semibold uppercase tracking-[0.18em] ${brandMuted}`}>{item.outlet}</div>
+                <p className="mt-2 text-sm font-medium text-[#1A3D2F]">{item.headline}</p>
+                <p className={`mt-2 text-xs ${brandMuted}`}>{item.date}</p>
               </CardContent>
             </Card>
           ))}

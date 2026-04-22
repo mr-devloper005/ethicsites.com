@@ -1,5 +1,3 @@
-export const LOGIN_PAGE_OVERRIDE_ENABLED = false
+export const LOGIN_PAGE_OVERRIDE_ENABLED = true
 
-export function LoginPageOverride() {
-  return null
-}
+export { LoginPageOverride } from '@/overrides/login-page-ui'

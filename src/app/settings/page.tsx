@@ -236,11 +236,11 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-[#F5F2EB] text-[#1A3D2F]">
       <NavbarShell />
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <h1 className="text-3xl font-bold text-foreground mb-8">Settings</h1>
+      <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
+        <h1 className="mb-8 font-display text-3xl font-semibold tracking-[-0.03em]">Settings</h1>
 
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Sidebar */}
