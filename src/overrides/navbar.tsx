@@ -40,7 +40,6 @@ export function NavbarOverride() {
           </div>
           <div className="hidden min-w-0 sm:block">
             <span className="block truncate font-display text-xl font-semibold tracking-[-0.02em]">{SITE_CONFIG.name}</span>
-            <span className="block text-[10px] font-medium uppercase tracking-[0.26em] text-[#1A3D2F]/50">Images</span>
           </div>
         </Link>
 

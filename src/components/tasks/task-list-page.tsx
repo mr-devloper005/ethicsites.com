@@ -4,6 +4,7 @@ import { NavbarShell } from '@/components/shared/navbar-shell'
 import { Footer } from '@/components/shared/footer'
 import { ContentImage } from '@/components/shared/content-image'
 import { TaskListClient } from '@/components/tasks/task-list-client'
+import { CategoryFilter } from '@/components/tasks/category-filter'
 import { SchemaJsonLd } from '@/components/seo/schema-jsonld'
 import { buildPostUrl, fetchTaskPosts, getPostImages } from '@/lib/task-data'
 import { SITE_CONFIG, getTaskConfig, type TaskKey } from '@/lib/site-config'
@@ -46,8 +47,18 @@ export async function TaskListPage({ task, category }: { task: TaskKey; category
   }
 
   const taskConfig = getTaskConfig(task)
-  const posts = await fetchTaskPosts(task, 30)
+  const allPosts = await fetchTaskPosts(task, 30)
   const normalizedCategory = category ? normalizeCategory(category) : 'all'
+
+  // Filter posts by category on server-side
+  const posts = normalizedCategory === 'all'
+    ? allPosts
+    : allPosts.filter((post) => {
+        const content = post.content && typeof post.content === 'object' ? post.content : {}
+        const postCategory = typeof (content as any).category === 'string' ? (content as any).category : ''
+        return normalizeCategory(postCategory) === normalizedCategory
+      })
+
   const intro = taskIntroCopy[task]
   const baseUrl = SITE_CONFIG.baseUrl.replace(/\/$/, '')
   const schemaItems = posts.slice(0, 10).map((post, index) => ({
@@ -417,22 +428,13 @@ export async function TaskListPage({ task, category }: { task: TaskKey; category
                   : `${ui.panel}`
             }`}
           >
-            <form className="flex min-w-0 flex-1 flex-col gap-4 sm:flex-row sm:items-end sm:gap-4" action={taskConfig.route} method="get">
-              <div className="min-w-0 flex-1">
-                <label className={`block text-xs font-semibold uppercase tracking-[0.2em] ${ui.muted}`}>Filter by category</label>
-                <select name="category" defaultValue={normalizedCategory} className={`mt-2 h-12 w-full rounded-xl px-3 text-sm ${ui.input}`}>
-                  <option value="all">All categories</option>
-                  {CATEGORY_OPTIONS.map((item) => (
-                    <option key={item.slug} value={item.slug}>
-                      {item.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <button type="submit" className={`h-12 shrink-0 rounded-full px-8 text-sm font-semibold sm:min-w-[120px] ${ui.button}`}>
-                Apply
-              </button>
-            </form>
+            <CategoryFilter
+              route={taskConfig.route}
+              inputClass={ui.input}
+              buttonClass={ui.button}
+              labelClass={ui.muted}
+              mutedClass={ui.muted}
+            />
             {task === 'image' ? (
               <div className="flex shrink-0 flex-col justify-end gap-2 sm:items-end">
                 <span className={`hidden text-[10px] font-semibold uppercase tracking-[0.2em] sm:block ${ui.muted}`}>Publish</span>

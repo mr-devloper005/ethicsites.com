@@ -75,6 +75,7 @@ export default function ContactPage() {
               { icon: Mail, title: 'Resource partnerships', body: 'Coordinate curation projects, reference pages, and link programs.' },
               { icon: Sparkles, title: 'Curator support', body: 'Need help organizing shelves, collections, or profile-connected boards?' },
             ]
+  const contactEmail = process.env.NEXT_PUBLIC_CONTACT_EMAIL?.trim()
 
   return (
     <div className={`min-h-screen ${tone.shell}`}>
@@ -98,6 +99,28 @@ export default function ContactPage() {
 
           <div className={`rounded-[2rem] p-7 ${tone.panel}`}>
             <h2 className="text-2xl font-semibold">Send a message</h2>
+            {contactEmail ? (
+              <div className={`mt-5 rounded-[1.5rem] p-5 ${tone.soft}`}>
+                <p className="text-sm font-semibold">Prefer email?</p>
+                <p className={`mt-2 text-sm leading-7 ${tone.muted}`}>
+                  Reach us directly and manage this address through your `.env` file.
+                </p>
+                <div className="mt-4 flex flex-wrap items-center gap-3">
+                  <a
+                    href={`mailto:${contactEmail}`}
+                    className={`inline-flex h-11 items-center justify-center rounded-full px-5 text-sm font-semibold ${tone.action}`}
+                  >
+                    Email us
+                  </a>
+                  <a
+                    href={`mailto:${contactEmail}`}
+                    className={`text-sm underline underline-offset-4 ${tone.muted}`}
+                  >
+                    {contactEmail}
+                  </a>
+                </div>
+              </div>
+            ) : null}
             <form className="mt-6 grid gap-4">
               <input className="h-12 rounded-xl border border-current/10 bg-transparent px-4 text-sm" placeholder="Your name" />
               <input className="h-12 rounded-xl border border-current/10 bg-transparent px-4 text-sm" placeholder="Email address" />
