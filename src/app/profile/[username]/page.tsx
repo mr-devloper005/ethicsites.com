@@ -5,40 +5,15 @@ import { NavbarShell } from "@/components/shared/navbar-shell";
 import { ContentImage } from "@/components/shared/content-image";
 import { TaskPostCard } from "@/components/shared/task-post-card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { SchemaJsonLd } from "@/components/seo/schema-jsonld";
-import { buildPostUrl } from "@/lib/task-data";
+import { buildPostUrl, fetchTaskPostBySlug, fetchTaskPosts } from "@/lib/task-data";
 import { buildPostMetadata, buildTaskMetadata } from "@/lib/seo";
-import { fetchTaskPostBySlug, fetchTaskPosts } from "@/lib/task-data";
 import { SITE_CONFIG } from "@/lib/site-config";
+import { Globe, Mail, MapPin, Sparkles } from "lucide-react";
+import { RichContent, formatRichHtml } from "@/components/shared/rich-content";
 
 export const revalidate = 3;
-
-const escapeHtml = (value: string) =>
-  value
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
-
-const sanitizeRichHtml = (html: string) =>
-  html
-    .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "")
-    .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "")
-    .replace(/<iframe[^>]*>[\s\S]*?<\/iframe>/gi, "")
-    .replace(/<object[^>]*>[\s\S]*?<\/object>/gi, "")
-    .replace(/\son[a-z]+\s*=\s*(['"]).*?\1/gi, "")
-    .replace(/\shref\s*=\s*(['"])javascript:.*?\1/gi, ' href="#"');
-
-const formatRichHtml = (raw?: string | null, fallback = "Profile details will appear here once available.") => {
-  const source = typeof raw === "string" ? raw.trim() : "";
-  if (!source) return `<p>${escapeHtml(fallback)}</p>`;
-  if (/<[a-z][\s\S]*>/i.test(source)) return sanitizeRichHtml(source);
-  return source
-    .split(/\n{2,}/)
-    .map((paragraph) => `<p>${escapeHtml(paragraph.replace(/\n/g, " ").trim())}</p>`)
-    .join("");
-};
 
 export async function generateStaticParams() {
   const posts = await fetchTaskPosts("profile", 50);
@@ -65,6 +40,7 @@ export default async function ProfileDetailPage({ params }: { params: Promise<{ 
   if (!post) {
     notFound();
   }
+
   const content = (post.content || {}) as Record<string, any>;
   const logoUrl = typeof content.logo === "string" ? content.logo : undefined;
   const brandName =
@@ -78,8 +54,10 @@ export default async function ProfileDetailPage({ params }: { params: Promise<{ 
     (content.description as string | undefined) ||
     post.summary ||
     "Profile details will appear here once available.";
-  const descriptionHtml = formatRichHtml(description);
-  const suggestedArticles = await fetchTaskPosts("article", 6);
+  const descriptionHtml = formatRichHtml(description, "Profile details will appear here once available.");
+  const relatedProfiles = (await fetchTaskPosts("profile", 8))
+    .filter((item) => item.slug !== post.slug)
+    .slice(0, 3);
   const baseUrl = SITE_CONFIG.baseUrl.replace(/\/$/, "");
   const breadcrumbData = {
     "@context": "https://schema.org",
@@ -111,79 +89,107 @@ export default async function ProfileDetailPage({ params }: { params: Promise<{ 
       <NavbarShell />
       <main className="mx-auto w-full max-w-6xl px-4 pb-16 pt-10 sm:px-6 lg:px-8">
         <SchemaJsonLd data={breadcrumbData} />
-        <section className="rounded-3xl border border-border/60 bg-white/90 p-8 shadow-sm md:p-12">
-          <div className="grid gap-8 md:grid-cols-[200px_1fr] md:items-start">
-            <div className="flex justify-center md:justify-start">
-              <div className="relative h-36 w-36 overflow-hidden rounded-full border border-border/70 bg-muted">
+
+        <section className="grid gap-8 lg:grid-cols-[0.78fr_1.22fr] lg:items-start">
+          <div className="space-y-6 lg:sticky lg:top-24">
+            <div className="overflow-hidden rounded-[2rem] border border-[#1A3D2F]/10 bg-white shadow-[0_24px_70px_rgba(26,61,47,0.08)]">
+              <div className="relative aspect-[4/5] bg-[#ebe6de]">
                 {logoUrl ? (
-                  <ContentImage src={logoUrl} alt={post.title} fill className="object-cover" sizes="144px" intrinsicWidth={144} intrinsicHeight={144} />
+                  <ContentImage
+                    src={logoUrl}
+                    alt={post.title}
+                    fill
+                    className="object-cover"
+                    sizes="(max-width: 1024px) 100vw, 420px"
+                    intrinsicWidth={960}
+                    intrinsicHeight={1200}
+                  />
                 ) : (
-                  <div className="flex h-full w-full items-center justify-center text-3xl font-semibold text-muted-foreground">
+                  <div className="flex h-full w-full items-center justify-center text-6xl font-semibold text-[#1A3D2F]/45">
                     {post.title.slice(0, 1).toUpperCase()}
                   </div>
                 )}
+                <div className="absolute inset-0 bg-gradient-to-t from-[#10271d]/38 via-transparent to-transparent" />
+                <div className="absolute left-5 top-5">
+                  <Badge className="border border-white/25 bg-white/15 text-white backdrop-blur-sm hover:bg-white/20">
+                    <Sparkles className="mr-1 h-3.5 w-3.5" />
+                    Profile
+                  </Badge>
+                </div>
               </div>
             </div>
-            <div>
-              <h1 className="text-3xl font-bold text-foreground sm:text-4xl">{brandName}</h1>
-              {domain ? (
-                <p className="mt-1 text-sm font-medium text-muted-foreground">{domain}</p>
-              ) : null}
-              <article
-                className="article-content prose prose-slate mt-6 max-w-2xl text-base leading-relaxed prose-p:my-4 prose-a:text-primary prose-a:underline prose-strong:font-semibold"
-                dangerouslySetInnerHTML={{ __html: descriptionHtml }}
-              />
+
+            <div className="rounded-[2rem] border border-[#1A3D2F]/10 bg-[#f7f3ec] p-6 shadow-[0_18px_44px_rgba(26,61,47,0.06)]">
+              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#1A3D2F]/55">Quick details</p>
+              <div className="mt-4 space-y-3 text-sm text-[#1A3D2F]/72">
+                {domain ? (
+                  <div className="flex items-start gap-2">
+                    <Globe className="mt-0.5 h-4 w-4" />
+                    <span>{domain}</span>
+                  </div>
+                ) : null}
+                {typeof content.location === "string" && content.location.trim() ? (
+                  <div className="flex items-start gap-2">
+                    <MapPin className="mt-0.5 h-4 w-4" />
+                    <span>{content.location}</span>
+                  </div>
+                ) : null}
+                {typeof content.email === "string" && content.email.trim() ? (
+                  <div className="flex items-start gap-2">
+                    <Mail className="mt-0.5 h-4 w-4" />
+                    <a href={`mailto:${content.email}`} className="break-all text-[#1A3D2F] hover:underline">
+                      {content.email}
+                    </a>
+                  </div>
+                ) : null}
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-[2rem] border border-[#1A3D2F]/10 bg-[linear-gradient(180deg,#fffdf9_0%,#f5f2eb_100%)] p-8 shadow-[0_24px_70px_rgba(26,61,47,0.08)] md:p-10">
+            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#1A3D2F]/55">Featured profile</p>
+            <h1 className="mt-4 font-display text-4xl font-semibold tracking-[-0.05em] text-[#1A3D2F] sm:text-5xl">
+              {brandName}
+            </h1>
+            {domain ? (
+              <p className="mt-3 text-sm font-medium text-[#1A3D2F]/58">{domain}</p>
+            ) : null}
+            <RichContent html={descriptionHtml} className="mt-6 max-w-3xl text-[#1A3D2F]/80 prose-p:my-5 prose-p:leading-8" />
+            <div className="mt-8 flex flex-wrap gap-3">
               {website ? (
-                <div className="mt-8">
-                  <Button asChild size="lg" className="px-7 text-base">
-                    <Link href={website} target="_blank" rel="noopener noreferrer">
-                      Visit Official Site
-                    </Link>
-                  </Button>
-                </div>
+                <Button asChild size="lg" className="rounded-full bg-[#1A3D2F] px-7 text-base text-white hover:bg-[#234d3e]">
+                  <Link href={website} target="_blank" rel="noopener noreferrer">
+                    Visit official site
+                  </Link>
+                </Button>
+              ) : null}
+              {typeof content.email === "string" && content.email.trim() ? (
+                <Button asChild size="lg" variant="outline" className="rounded-full border-[#1A3D2F]/15 bg-white px-7 text-base text-[#1A3D2F] hover:bg-[#f7f3ec]">
+                  <a href={`mailto:${content.email}`}>Send email</a>
+                </Button>
               ) : null}
             </div>
           </div>
         </section>
 
-        {suggestedArticles.length ? (
+        {relatedProfiles.length ? (
           <section className="mt-12">
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold text-foreground">Suggested articles</h2>
-              <Link href="/articles" className="text-sm font-medium text-primary hover:underline">
+              <h2 className="text-xl font-semibold text-foreground">More profiles</h2>
+              <Link href="/profile" className="text-sm font-medium text-primary hover:underline">
                 View all
               </Link>
             </div>
             <div className="mt-6 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {suggestedArticles.slice(0, 3).map((article) => (
+              {relatedProfiles.map((profile) => (
                 <TaskPostCard
-                  key={article.id}
-                  post={article}
-                  href={buildPostUrl("article", article.slug)}
-                  compact
+                  key={profile.id}
+                  post={profile}
+                  href={buildPostUrl("profile", profile.slug)}
+                  taskKey="profile"
                 />
               ))}
             </div>
-            <nav className="mt-6 rounded-2xl border border-border bg-card/60 p-4">
-              <p className="text-sm font-semibold text-foreground">Related links</p>
-              <ul className="mt-2 space-y-2 text-sm">
-                {suggestedArticles.slice(0, 3).map((article) => (
-                  <li key={`related-${article.id}`}>
-                    <Link
-                      href={buildPostUrl("article", article.slug)}
-                      className="text-primary underline-offset-4 hover:underline"
-                    >
-                      {article.title}
-                    </Link>
-                  </li>
-                ))}
-                <li>
-                  <Link href="/profile" className="text-primary underline-offset-4 hover:underline">
-                    Browse all profiles
-                  </Link>
-                </li>
-              </ul>
-            </nav>
           </section>
         ) : null}
       </main>

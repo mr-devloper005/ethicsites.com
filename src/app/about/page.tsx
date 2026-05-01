@@ -3,8 +3,6 @@ import { PageShell } from "@/components/shared/page-shell"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { mockTeamMembers } from "@/data/mock-data"
 import { SITE_CONFIG } from "@/lib/site-config"
 import { brandMuted, brandPrimaryButton, brandSoft, brandSurface } from "@/components/shared/brand-surfaces"
 
@@ -72,35 +70,6 @@ export default function AboutPage() {
               <CardContent className="p-6">
                 <h3 className="font-display text-lg font-semibold text-[#1A3D2F]">{value.title}</h3>
                 <p className={`mt-2 text-sm leading-7 ${brandMuted}`}>{value.description}</p>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </div>
-
-      <div className="mt-12">
-        <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-          <h2 className="font-display text-2xl font-semibold text-[#1A3D2F]">People behind the product</h2>
-          <Link href="/careers" className="text-sm font-semibold text-[#C29B6D] hover:underline">
-            View careers
-          </Link>
-        </div>
-        <div className="grid gap-6 md:grid-cols-3">
-          {mockTeamMembers.map((member) => (
-            <Card key={member.id} className={`${brandSurface} border-0 shadow-none transition-transform hover:-translate-y-0.5`}>
-              <CardContent className="p-6">
-                <div className="flex items-center gap-3">
-                  <Avatar className="h-12 w-12 border border-[#1A3D2F]/10">
-                    <AvatarImage src={member.avatar} alt={member.name} />
-                    <AvatarFallback className="bg-[#F5F2EB] text-[#1A3D2F]">{member.name.charAt(0)}</AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <p className="text-sm font-semibold text-[#1A3D2F]">{member.name}</p>
-                    <p className={`text-xs ${brandMuted}`}>{member.role}</p>
-                  </div>
-                </div>
-                <p className={`mt-3 text-sm leading-7 ${brandMuted}`}>{member.bio}</p>
-                <p className={`mt-3 text-xs ${brandMuted}`}>{member.location}</p>
               </CardContent>
             </Card>
           ))}
