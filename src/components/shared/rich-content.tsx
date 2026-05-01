@@ -8,6 +8,30 @@ const escapeHtml = (value: string) =>
     .replace(/\"/g, "&quot;")
     .replace(/'/g, "&#39;");
 
+const decodeHtmlEntities = (value: string) =>
+  value.replace(/&(#x?[0-9a-f]+|amp|lt|gt|quot|#39);/gi, (match, entity) => {
+    const normalized = String(entity).toLowerCase();
+    if (normalized === "amp") return "&";
+    if (normalized === "lt") return "<";
+    if (normalized === "gt") return ">";
+    if (normalized === "quot") return '"';
+    if (normalized === "#39") return "'";
+
+    const isHex = normalized.startsWith("#x");
+    const isNumeric = normalized.startsWith("#");
+    if (!isHex && !isNumeric) return match;
+
+    const rawNumber = isHex ? normalized.slice(2) : normalized.slice(1);
+    const parsed = Number.parseInt(rawNumber, isHex ? 16 : 10);
+    if (!Number.isFinite(parsed)) return match;
+
+    try {
+      return String.fromCodePoint(parsed);
+    } catch {
+      return match;
+    }
+  });
+
 const sanitizeRichHtml = (html: string) =>
   html
     .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "")
@@ -20,11 +44,12 @@ const sanitizeRichHtml = (html: string) =>
 export const formatRichHtml = (raw?: string | null, fallback = "Details coming soon.") => {
   const source = typeof raw === "string" ? raw.trim() : "";
   if (!source) return `<p>${escapeHtml(fallback)}</p>`;
-  if (/<[a-z][\s\S]*>/i.test(source)) {
-    return sanitizeRichHtml(source);
+  const decodedSource = decodeHtmlEntities(source);
+  if (/<[a-z][\s\S]*>/i.test(decodedSource)) {
+    return sanitizeRichHtml(decodedSource);
   }
 
-  return source
+  return decodedSource
     .split(/\n{2,}/)
     .map((paragraph) => `<p>${escapeHtml(paragraph.replace(/\n/g, " ").trim())}</p>`)
     .join("");

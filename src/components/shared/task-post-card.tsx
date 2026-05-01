@@ -27,7 +27,12 @@ const getExcerpt = (value?: string | null, maxLength = 140) => {
   const text = stripHtml(value)
   if (!text) return ''
   if (text.length <= maxLength) return text
-  return `${text.slice(0, maxLength).trimEnd()}…`
+  return `${text.slice(0, maxLength).trimEnd()}...`
+}
+
+const getSeededChoice = (seed: string, values: string[]) => {
+  const score = Array.from(seed).reduce((total, char, index) => total + char.charCodeAt(0) * (index + 1), 0)
+  return values[score % values.length]
 }
 
 const getContent = (post: SitePost): ListingContent => {
@@ -79,9 +84,8 @@ const cardStyles = {
     title: 'text-[#1f2617]',
     badge: 'bg-[#1f2617] text-[#edf5dc]',
   },
-  /** Cream / forest gallery (image-portfolio & profile-business layouts) */
   'forest-gallery': {
-    frame: 'rounded-[1.85rem] border border-[#1A3D2F]/10 bg-white shadow-[0_18px_50px_rgba(26,61,47,0.08)] hover:-translate-y-1 hover:border-[#C29B6D]/35 hover:shadow-[0_26px_64px_rgba(26,61,47,0.12)]',
+    frame: 'rounded-full border border-[#1A3D2F]/10 bg-white shadow-[0_18px_50px_rgba(26,61,47,0.08)] hover:-translate-y-1 hover:border-[#C29B6D]/35 hover:shadow-[0_26px_64px_rgba(26,61,47,0.12)]',
     muted: 'text-[#1A3D2F]/68',
     title: 'text-[#1A3D2F]',
     badge: 'border border-[#1A3D2F]/12 bg-[#F5F2EB] text-[#1A3D2F]',
@@ -139,6 +143,7 @@ export function TaskPostCard({
               : 'aspect-[4/3]'
   const altText = `${post.title} ${category} ${variant === 'listing' ? 'business listing' : variant} image`
   const imageSizes = variant === 'article' ? '(max-width: 640px) 90vw, (max-width: 1024px) 48vw, 420px' : variant === 'image' ? '(max-width: 640px) 82vw, (max-width: 1024px) 34vw, 320px' : '(max-width: 640px) 85vw, (max-width: 1024px) 42vw, 340px'
+  const galleryAspect = 'aspect-[1/1]'
 
   const isDirectoryProduct = recipe.homeLayout === 'listing-home' || recipe.homeLayout === 'classified-home'
   const isDirectorySurface =
@@ -209,6 +214,92 @@ export function TaskPostCard({
           <h3 className={`mt-3 line-clamp-2 text-lg font-semibold leading-snug group-hover:opacity-85 ${visualVariant.title}`}>{post.title}</h3>
           <p className={`mt-2 line-clamp-3 text-sm leading-7 ${visualVariant.muted}`}>{getExcerpt(content.description || post.summary, compact ? 120 : 180) || 'Explore this bookmark.'}</p>
           {content.email ? <div className={`mt-3 inline-flex items-center gap-1 text-xs ${visualVariant.muted}`}><Mail className="h-3.5 w-3.5" />{content.email}</div> : null}
+        </div>
+      </Link>
+    )
+  }
+
+  if (variant === 'image' && useForestGallery) {
+    return (
+      <Link
+        href={href}
+        className={`group mb-6 block break-inside-avoid overflow-hidden transition duration-300 ${visualVariant.frame}`}
+      >
+        <div className={`relative overflow-hidden ${galleryAspect} bg-[#e8ebe8]`}>
+          <ContentImage
+            src={image}
+            alt={altText}
+            fill
+            sizes={imageSizes}
+            quality={78}
+            className="object-cover transition-transform duration-700 group-hover:scale-[1.035]"
+            intrinsicWidth={960}
+            intrinsicHeight={1200}
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#10271d]/72 via-[#10271d]/12 to-transparent" />
+          <div className="absolute inset-x-4 top-4 flex items-start justify-between gap-3">
+            <span className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] ${visualVariant.badge}`}>
+              <Tag className="h-3.5 w-3.5" />
+              {category}
+            </span>
+            <span className="rounded-full border border-white/20 bg-white/15 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-white backdrop-blur-sm">
+              Album view
+            </span>
+          </div>
+          <div className="absolute inset-x-0 bottom-0 p-5 text-white">
+            <h3 className="max-w-[16rem] text-xl font-semibold leading-tight tracking-[-0.03em] sm:text-[1.4rem]">
+              {post.title}
+            </h3>
+            <p className="mt-2 max-w-[18rem] text-sm leading-6 text-white/82">
+              {getExcerpt(content.description || post.summary, 110) || 'Open the full image story and details.'}
+            </p>
+            <div className="mt-4 flex flex-wrap items-center gap-3 text-xs text-white/74">
+              {content.location ? <span className="inline-flex items-center gap-1"><MapPin className="h-3.5 w-3.5" />{content.location}</span> : null}
+              {content.email ? <span className="inline-flex items-center gap-1"><Mail className="h-3.5 w-3.5" />{content.email}</span> : null}
+            </div>
+          </div>
+        </div>
+      </Link>
+    )
+  }
+
+  if (variant === 'profile' && useForestGallery) {
+    return (
+      <Link
+        href={href}
+        className={`group flex h-full flex-col overflow-hidden transition duration-300 ${visualVariant.frame}`}
+      >
+        <div className="relative aspect-[5/4] overflow-hidden bg-[#ebe5dc]">
+          <ContentImage
+            src={image}
+            alt={altText}
+            fill
+            sizes={imageSizes}
+            quality={78}
+            className="object-cover transition-transform duration-700 group-hover:scale-[1.035]"
+            intrinsicWidth={960}
+            intrinsicHeight={768}
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#10271d]/52 via-transparent to-transparent" />
+          <span className={`absolute left-4 top-4 inline-flex items-center gap-1 rounded-full px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] ${visualVariant.badge}`}>
+            <Tag className="h-3.5 w-3.5" />
+            {category}
+          </span>
+        </div>
+        <div className="flex flex-1 flex-col p-5">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <h3 className={`text-xl font-semibold leading-tight tracking-[-0.03em] ${visualVariant.title}`}>{post.title}</h3>
+              <p className={`mt-2 line-clamp-3 text-sm leading-7 ${visualVariant.muted}`}>
+                {getExcerpt(content.description || post.summary, 135) || 'Explore this profile and learn more.'}
+              </p>
+            </div>
+            <ArrowUpRight className={`mt-1 h-5 w-5 shrink-0 ${visualVariant.muted}`} />
+          </div>
+          <div className="mt-auto flex flex-wrap gap-3 pt-5 text-xs">
+            {content.location ? <span className={`inline-flex items-center gap-1 ${visualVariant.muted}`}><MapPin className="h-3.5 w-3.5" />{content.location}</span> : null}
+            {content.email ? <span className={`inline-flex items-center gap-1 ${visualVariant.muted}`}><Mail className="h-3.5 w-3.5" />{content.email}</span> : null}
+          </div>
         </div>
       </Link>
     )

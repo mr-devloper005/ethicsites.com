@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { buildPostUrl, fetchTaskPostBySlug, fetchTaskPosts } from "@/lib/task-data";
 import { SITE_CONFIG, getTaskConfig, type TaskKey } from "@/lib/site-config";
 import type { SitePost } from "@/lib/site-connector";
-import { TaskImageCarousel } from "@/components/tasks/task-image-carousel";
+import { TaskImageGrid } from "@/components/tasks/task-image-grid";
 import { cn } from "@/lib/utils";
 import { ArticleComments } from "@/components/tasks/article-comments";
 import { SchemaJsonLd } from "@/components/seo/schema-jsonld";
@@ -247,6 +247,138 @@ export async function TaskDetailPage({ task, slug }: { task: TaskKey; slug: stri
     );
   }
 
+  if (task === "image") {
+    return (
+      <div className="min-h-screen bg-background">
+        <NavbarShell />
+        <main className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+          <SchemaJsonLd data={schemaPayload} />
+          <Link
+            href={taskConfig?.route || "/"}
+            className="mb-6 inline-flex items-center text-sm text-muted-foreground hover:text-foreground"
+          >
+            Back to {taskConfig?.label || "posts"}
+          </Link>
+
+          <section className="grid gap-8 lg:grid-cols-[1.2fr_0.8fr] lg:items-start">
+            <div className="space-y-6">
+              <div className="rounded-[2rem] border border-[#1A3D2F]/10 bg-white p-4 shadow-[0_24px_70px_rgba(26,61,47,0.08)]">
+                <TaskImageGrid images={images} />
+              </div>
+              {content.highlights?.length ? (
+                <div className="rounded-[2rem] border border-[#1A3D2F]/10 bg-[#f7f3ec] p-6 shadow-[0_18px_44px_rgba(26,61,47,0.06)]">
+                  <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#1A3D2F]/55">Highlights</p>
+                  <ul className="mt-4 space-y-3 text-sm leading-7 text-[#1A3D2F]/72">
+                    {content.highlights.map((item) => (
+                      <li key={item} className="rounded-2xl bg-white/80 px-4 py-3">
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+            </div>
+
+            <div className="space-y-6 lg:sticky lg:top-24">
+              <div className="rounded-[2rem] border border-[#1A3D2F]/10 bg-[linear-gradient(180deg,#fffdf9_0%,#f5f2eb_100%)] p-7 shadow-[0_24px_70px_rgba(26,61,47,0.08)]">
+                <div className="flex flex-wrap items-center gap-3 text-sm text-[#1A3D2F]/65">
+                  <Badge className="border border-[#1A3D2F]/12 bg-white text-[#1A3D2F] hover:bg-white">
+                    <Tag className="mr-1 h-3.5 w-3.5" />
+                    {category}
+                  </Badge>
+                  {location ? (
+                    <span className="inline-flex items-center gap-1">
+                      <MapPin className="h-4 w-4" />
+                      {location}
+                    </span>
+                  ) : null}
+                </div>
+                <h1 className="mt-5 text-4xl font-semibold tracking-[-0.05em] text-[#1A3D2F]">
+                  {post.title}
+                </h1>
+                <RichContent html={descriptionHtml} className="mt-5 text-[#1A3D2F]/80 prose-p:my-5 prose-p:leading-8" />
+              </div>
+
+              {(content.website || content.phone || content.email || location) ? (
+                <div className="rounded-[2rem] border border-[#1A3D2F]/10 bg-white p-6 shadow-[0_18px_44px_rgba(26,61,47,0.06)]">
+                  <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#1A3D2F]/55">Details</p>
+                  <div className="mt-4 space-y-3 text-sm text-[#1A3D2F]/75">
+                    {content.website ? (
+                      <div className="flex items-start gap-2">
+                        <Globe className="mt-0.5 h-4 w-4" />
+                        <a href={content.website} className="break-all text-[#1A3D2F] hover:underline" target="_blank" rel="noreferrer">
+                          {content.website}
+                        </a>
+                      </div>
+                    ) : null}
+                    {content.phone ? (
+                      <div className="flex items-start gap-2">
+                        <Phone className="mt-0.5 h-4 w-4" />
+                        <span>{content.phone}</span>
+                      </div>
+                    ) : null}
+                    {content.email ? (
+                      <div className="flex items-start gap-2">
+                        <Mail className="mt-0.5 h-4 w-4" />
+                        <a href={`mailto:${content.email}`} className="break-all text-[#1A3D2F] hover:underline">
+                          {content.email}
+                        </a>
+                      </div>
+                    ) : null}
+                    {location ? (
+                      <div className="flex items-start gap-2">
+                        <MapPin className="mt-0.5 h-4 w-4" />
+                        <span>{location}</span>
+                      </div>
+                    ) : null}
+                  </div>
+                  {content.website ? (
+                    <Button className="mt-5 w-full rounded-full bg-[#1A3D2F] text-white hover:bg-[#234d3e]" asChild>
+                      <a href={content.website} target="_blank" rel="noreferrer">
+                        Visit website
+                      </a>
+                    </Button>
+                  ) : null}
+                </div>
+              ) : null}
+            </div>
+          </section>
+
+          <section className="mt-12">
+            {related.length ? (
+              <>
+                <div className="mb-4 flex items-center justify-between">
+                  <h2 className="text-xl font-semibold text-foreground">
+                    More in {category}
+                  </h2>
+                  {taskConfig?.route && (
+                    <Link
+                      href={taskConfig.route}
+                      className="text-sm text-muted-foreground hover:text-foreground"
+                    >
+                      View all
+                    </Link>
+                  )}
+                </div>
+                <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                  {related.map((item) => (
+                    <TaskPostCard
+                      key={item.id}
+                      post={item}
+                      href={buildPostUrl(task, item.slug)}
+                      taskKey={task}
+                    />
+                  ))}
+                </div>
+              </>
+            ) : null}
+          </section>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <NavbarShell />
@@ -312,7 +444,7 @@ export async function TaskDetailPage({ task, slug }: { task: TaskKey; slug: stri
               <>
                 {!isBookmark ? (
                   <div className={cn(isClassified ? "w-full" : "")}>
-                    <TaskImageCarousel images={images} />
+                    <TaskImageGrid images={images} />
                   </div>
                 ) : null}
 

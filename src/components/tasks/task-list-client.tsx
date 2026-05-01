@@ -16,7 +16,6 @@ type Props = {
   task: TaskKey;
   initialPosts: SitePost[];
   category?: string;
-  /** Dark toolbar on image-masonry layout; light on image-portfolio */
   galleryToolbar?: "light" | "dark";
 };
 
@@ -109,7 +108,7 @@ export function TaskListClient({ task, initialPosts, category, galleryToolbar = 
   }
 
   const gridClass = isGallery
-    ? "grid gap-6 sm:grid-cols-2 xl:grid-cols-3"
+    ? "columns-1 gap-6 sm:columns-2 xl:columns-3"
     : isProfiles
       ? "mx-auto grid max-w-6xl gap-6 sm:grid-cols-2 lg:grid-cols-3"
       : "grid gap-6 sm:grid-cols-2 lg:grid-cols-4";
@@ -138,7 +137,7 @@ export function TaskListClient({ task, initialPosts, category, galleryToolbar = 
               {merged.length} {merged.length === 1 ? "image" : "images"}
               {category && category !== "all" ? (
                 <span className={cn("ml-2 text-sm font-normal", galleryToolbar === "dark" ? "text-slate-300" : brandMuted)}>
-                  · filtered
+                  - filtered
                 </span>
               ) : null}
             </p>
@@ -168,7 +167,7 @@ export function TaskListClient({ task, initialPosts, category, galleryToolbar = 
             <p className="font-display text-lg font-semibold tracking-[-0.02em] sm:text-xl">
               {merged.length} {merged.length === 1 ? "profile" : "profiles"}
               {category && category !== "all" ? (
-                <span className={cn("ml-2 text-sm font-normal", brandMuted)}>· filtered</span>
+                <span className={cn("ml-2 text-sm font-normal", brandMuted)}>- filtered</span>
               ) : null}
             </p>
           </div>
@@ -182,11 +181,11 @@ export function TaskListClient({ task, initialPosts, category, galleryToolbar = 
         </div>
       ) : null}
       <div className={gridClass}>
-      {merged.map((post) => {
-        const localOnly = (post as any).localOnly;
-        const href = localOnly ? `/local/${task}/${post.slug}` : buildPostUrl(task, post.slug);
-        return <TaskPostCard key={post.id} post={post} href={href} taskKey={task} />;
-      })}
+        {merged.map((post) => {
+          const localOnly = (post as any).localOnly;
+          const href = localOnly ? `/local/${task}/${post.slug}` : buildPostUrl(task, post.slug);
+          return <TaskPostCard key={post.id} post={post} href={href} taskKey={task} />;
+        })}
       </div>
     </div>
   );
