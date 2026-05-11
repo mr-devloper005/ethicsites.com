@@ -85,7 +85,7 @@ const cardStyles = {
     badge: 'bg-[#1f2617] text-[#edf5dc]',
   },
   'forest-gallery': {
-    frame: 'rounded-full border border-[#1A3D2F]/10 bg-white shadow-[0_18px_50px_rgba(26,61,47,0.08)] hover:-translate-y-1 hover:border-[#C29B6D]/35 hover:shadow-[0_26px_64px_rgba(26,61,47,0.12)]',
+    frame: 'rounded-2xl border border-[#1A3D2F]/10 bg-white shadow-[0_18px_50px_rgba(26,61,47,0.08)] hover:-translate-y-1 hover:border-[#C29B6D]/35 hover:shadow-[0_26px_64px_rgba(26,61,47,0.12)]',
     muted: 'text-[#1A3D2F]/68',
     title: 'text-[#1A3D2F]',
     badge: 'border border-[#1A3D2F]/12 bg-[#F5F2EB] text-[#1A3D2F]',
@@ -269,7 +269,7 @@ export function TaskPostCard({
         href={href}
         className={`group flex h-full flex-col overflow-hidden transition duration-300 ${visualVariant.frame}`}
       >
-        <div className="relative aspect-[5/4] overflow-hidden bg-[#ebe5dc]">
+        <div className="relative aspect-[4/3] overflow-hidden bg-[#ebe5dc]">
           <ContentImage
             src={image}
             alt={altText}
@@ -280,7 +280,7 @@ export function TaskPostCard({
             intrinsicWidth={960}
             intrinsicHeight={768}
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#10271d]/52 via-transparent to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
           <span className={`absolute left-4 top-4 inline-flex items-center gap-1 rounded-full px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] ${visualVariant.badge}`}>
             <Tag className="h-3.5 w-3.5" />
             {category}
@@ -289,8 +289,8 @@ export function TaskPostCard({
         <div className="flex flex-1 flex-col p-5">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <h3 className={`text-xl font-semibold leading-tight tracking-[-0.03em] ${visualVariant.title}`}>{post.title}</h3>
-              <p className={`mt-2 line-clamp-3 text-sm leading-7 ${visualVariant.muted}`}>
+              <h3 className={`text-xl font-semibold leading-tight tracking-[-0.03em] ${visualVariant.title} drop-shadow-lg`}>{post.title}</h3>
+              <p className={`mt-2 line-clamp-3 text-sm leading-7 ${visualVariant.muted} drop-shadow-md`}>
                 {getExcerpt(content.description || post.summary, 135) || 'Explore this profile and learn more.'}
               </p>
             </div>

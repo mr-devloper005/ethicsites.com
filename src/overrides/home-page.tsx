@@ -54,10 +54,7 @@ function getPostImage(post?: SitePost | null) {
 }
 
 export async function HomePageOverride() {
-  const [imagePosts, profilePosts] = await Promise.all([
-    fetchTaskPosts('image', 12, { allowMockFallback: true, fresh: true }),
-    fetchTaskPosts('profile', 8, { allowMockFallback: true, fresh: true }),
-  ])
+  const imagePosts = await fetchTaskPosts('image', 12, { allowMockFallback: true, fresh: true })
 
   const collageSources =
     imagePosts.length >= 4
@@ -65,7 +62,6 @@ export async function HomePageOverride() {
       : [...imagePosts.map((p) => getPostImage(p)), ...FALLBACK_COLLAGE].slice(0, 4)
 
   const featuredImages = imagePosts.length ? imagePosts.slice(0, 6) : null
-  const photographers = profilePosts.slice(0, 4)
 
   const schemaData = [
     {
@@ -104,7 +100,7 @@ export async function HomePageOverride() {
                 Curated photography
               </p>
               <h1 className="mt-8 font-display text-[2.35rem] font-semibold leading-[1.08] tracking-[-0.04em] sm:text-5xl lg:text-[3.25rem]">
-                The pinnacle of <span className="text-[#C29B6D]">visual storytelling</span>—built for photographers and image lovers.
+                A refined space for <span className="text-[#C29B6D]">immersive creativity</span> and storytelling.
               </h1>
               <p className="mt-6 max-w-xl text-base leading-8 text-[#1A3D2F]/70">
                 Browse striking work, follow creators, and keep your own images organized in a calm, editorial layout inspired by premium studios.
@@ -124,12 +120,7 @@ export async function HomePageOverride() {
                   Browse all images
                 </Link>
               </div>
-              <p className="mt-4 text-sm text-[#1A3D2F]/55">
-                <Link href="/profile" className="font-semibold text-[#1A3D2F]/75 underline-offset-4 hover:text-[#1A3D2F] hover:underline">
-                  Meet photographers
-                </Link>
-              </p>
-            </div>
+                          </div>
 
             <div className="relative mx-auto w-full max-w-lg lg:max-w-none">
               <div className="absolute -left-4 top-8 hidden text-[#C29B6D] lg:block">
@@ -184,6 +175,7 @@ export async function HomePageOverride() {
                     fill
                     className="object-cover"
                   />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
                 </div>
               </div>
             </div>
@@ -195,7 +187,7 @@ export async function HomePageOverride() {
                 <Camera className="mt-2 hidden h-6 w-6 shrink-0 text-[#C29B6D] sm:block" aria-hidden />
               </div>
               <p className="mt-6 text-base leading-8 text-[#1A3D2F]/70">
-                Every layout decision here favors negative space, serif headlines, and forest-and-gold accents so your work stays the hero. Collections and profiles are first-class—nothing else competes for attention.
+                Every layout decision here favors negative space, serif headlines, and forest-and-gold accents so your work stays the hero. Collections are first-class—nothing else competes for attention.
               </p>
               <p className="mt-4 text-base leading-8 text-[#1A3D2F]/70">
                 Whether you shoot editorial, wildlife, or abstract studies, this is a home base that reads like a studio site, not a generic portal.
@@ -248,78 +240,17 @@ export async function HomePageOverride() {
                     <div className="relative aspect-[16/10] w-full">
                       <ContentImage src={getPostImage(post)} alt={post.title} fill className="object-cover transition duration-500 group-hover:scale-[1.03]" />
                     </div>
-                    <div className="border-t border-white/10 bg-[#1A3D2F] px-4 py-3">
-                      <p className="font-display text-lg font-semibold text-white">{post.title}</p>
-                      <p className="text-xs text-white/55">Featured image</p>
+                    <div className="border-t border-white/10 bg-gradient-to-t from-[#1A3D2F]/95 via-[#1A3D2F]/85 to-[#1A3D2F] px-4 py-3">
+                      <p className="font-display text-lg font-semibold text-white drop-shadow-lg">{post.title}</p>
+                      <p className="text-xs text-white/80 drop-shadow-md">Featured image</p>
                     </div>
                   </Link>
                 ))}
               </div>
             ) : null}
-
-            <div className="mt-14 grid gap-6 lg:grid-cols-2">
-              {TESTIMONIALS.map((t) => (
-                <div key={t.name} className="relative rounded-2xl border border-white/12 bg-[#142f26] p-8">
-                  <Quote className="absolute right-6 top-6 h-10 w-10 text-[#C29B6D]/35" />
-                  <div className="flex gap-1 text-[#C29B6D]">
-                    {Array.from({ length: 5 }).map((_, i) => (
-                      <Star key={i} className="h-4 w-4 fill-current" />
-                    ))}
-                  </div>
-                  <p className="mt-5 text-sm leading-8 text-white/85">{t.quote}</p>
-                  <div className="mt-8 flex items-center gap-3">
-                    <div className="relative h-11 w-11 overflow-hidden rounded-full border border-white/15 bg-white/10">
-                      <ContentImage src="/placeholder.svg?height=80&width=80" alt={t.name} fill className="object-cover" />
-                    </div>
-                    <div>
-                      <p className="font-display text-sm font-semibold">{t.name}</p>
-                      <p className="text-xs text-white/55">{t.role}</p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
           </div>
         </section>
 
-        {/* Featured photographers */}
-        <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-24">
-          <div className="flex flex-col justify-between gap-6 sm:flex-row sm:items-end">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.26em] text-[#1A3D2F]/45">Featured photographers</p>
-              <h2 className="mt-3 font-display text-3xl font-semibold tracking-[-0.03em] sm:text-4xl">Names you will recognize from the field.</h2>
-            </div>
-            <Link href="/profile" className="text-sm font-semibold text-[#C29B6D] hover:underline">
-              Join the community
-            </Link>
-          </div>
-
-          <div className="mt-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
-            {(photographers.length ? photographers : [null, null, null, null]).map((post, index) => {
-              const niche = PHOTOGRAPHER_NICHES[index % PHOTOGRAPHER_NICHES.length]
-              const title = post?.title || ['Avery Cole', 'Jordan Lee', 'Sam Rivera', 'Taylor Brooks'][index]
-              const href = post ? `/profile/${post.slug}` : '/profile'
-              const img = post ? getPostImage(post) : `/placeholder.svg?height=400&width=320`
-              const showBook = index === 1
-              return (
-                <Link key={post?.id || index} href={href} className="group relative block text-center">
-                  <div className="relative overflow-hidden rounded-[1.35rem] border border-[#1A3D2F]/10 bg-[#1A3D2F]/5">
-                    <div className="relative aspect-[3/4] w-full">
-                      <ContentImage src={img} alt={title} fill className="object-cover grayscale transition duration-500 group-hover:grayscale-0" />
-                    </div>
-                    {showBook ? (
-                      <span className="absolute left-1/2 top-1/2 flex h-20 w-20 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-2 border-[#C29B6D] bg-[#F5F2EB]/95 text-center text-[10px] font-bold uppercase leading-tight tracking-wide text-[#1A3D2F] shadow-lg">
-                        Upload
-                      </span>
-                    ) : null}
-                  </div>
-                  <p className="mt-5 font-display text-lg font-semibold">{title}</p>
-                  <p className="mt-1 text-xs font-medium uppercase tracking-[0.14em] text-[#1A3D2F]/50">{niche}</p>
-                </Link>
-              )
-            })}
-          </div>
-        </section>
       </main>
 
       <Footer />

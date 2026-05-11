@@ -6,7 +6,6 @@ export const FOOTER_OVERRIDE_ENABLED = true
 
 const explore = [
   { name: 'Gallery', href: '/images' },
-  { name: 'Photographers', href: '/profile' },
   { name: 'Search', href: '/search' },
 ]
 
