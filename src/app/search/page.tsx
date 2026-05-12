@@ -48,6 +48,11 @@ export default async function SearchPage({
     const content = post.content && typeof post.content === "object" ? post.content : {};
     const typeText = compactText((content as any).type);
     if (typeText === "comment") return false;
+    
+    // Filter out profile posts (photographers)
+    const taskKey = getPostTaskKey(post);
+    if (taskKey !== "image") return false;
+    
     const description = compactText((content as any).description);
     const body = compactText((content as any).body);
     const excerpt = compactText((content as any).excerpt);
@@ -75,8 +80,8 @@ export default async function SearchPage({
       title="Search"
       description={
         query
-          ? `Results for “${query}” across galleries and profiles`
-          : "Browse imagery, profiles, and visual stories surfaced from the network."
+          ? `Results for "${query}" across galleries and imagery`
+          : "Browse imagery and visual stories surfaced from the network."
       }
       actions={
         <form action="/search" className="flex w-full gap-2 sm:w-auto">

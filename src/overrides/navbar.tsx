@@ -22,7 +22,6 @@ const navLinks = [
   { href: '/', label: 'Home' },
   { href: '/about', label: 'About' },
   { href: '/images', label: 'Gallery' },
-  { href: '/profile', label: 'Photographers' },
   { href: '/contact', label: 'Contact' },
 ]
 

@@ -8,16 +8,16 @@ import { brandMuted, brandPrimaryButton, brandSoft, brandSurface } from "@/compo
 
 const topics = [
   {
-    title: "Getting started",
-    description: "Create your account, verify email, and publish your first gallery or profile refresh in minutes.",
+    title: "Website Navigation",
+    description: "Learn how to navigate the website interface, use search functionality, and find content efficiently.",
   },
   {
-    title: "Collections & uploads",
-    description: "Organize shoots into collections, reorder frames, and keep large sets feeling cohesive for viewers.",
+    title: "Image Gallery",
+    description: "Browse and explore image galleries, use filters to find specific content, and understand card layouts.",
   },
   {
-    title: "Photographer profiles",
-    description: "Choose specialties, regions, and portfolio highlights so clients and fans understand your craft quickly.",
+    title: "UI Features",
+    description: "Discover website interface features including card styling, text visibility improvements, and responsive design.",
   },
 ]
 
@@ -25,7 +25,7 @@ export default function HelpPage() {
   return (
     <PageShell
       title="Help Center"
-      description="Guides for galleries, profiles, uploads, and account settings—written for photographers, not generic portals."
+      description="Guides for website navigation, image galleries, UI features, and interface usage—written for optimal user experience."
       actions={
         <Button asChild className={brandPrimaryButton}>
           <Link href="/contact">Contact support</Link>

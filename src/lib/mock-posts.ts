@@ -43,13 +43,7 @@ const taskTitles: Record<TaskKey, string[]> = {
     "Neon Night Market",
     "Minimal Workspace",
   ],
-  profile: [
-    "Aisha Khan",
-    "Rohan Patel",
-    "Studio R&R",
-    "Team Northwind",
-    "Maya Desai",
-  ],
+  profile: [],
   social: [
     "Community Launch Update",
     "Collab Request: Designers",

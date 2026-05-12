@@ -33,14 +33,9 @@ export default function AboutPage() {
       title={`About ${SITE_CONFIG.name}`}
       description={`${SITE_CONFIG.name} is a photography-forward platform for galleries, visual stories, and the people behind the lens.`}
       actions={
-        <>
-          <Button variant="outline" asChild className="rounded-full border-[#1A3D2F]/20 bg-white text-[#1A3D2F] hover:bg-[#F5F2EB]">
-            <Link href="/profile">Meet photographers</Link>
-          </Button>
-          <Button asChild className={brandPrimaryButton}>
-            <Link href="/contact">Contact us</Link>
-          </Button>
-        </>
+        <Button asChild className={brandPrimaryButton}>
+          <Link href="/contact">Contact us</Link>
+        </Button>
       }
     >
       <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
