@@ -156,11 +156,7 @@ export const taskIntroCopy: Record<
       'These posts connect with articles, listings, and other sections so visuals can act as entry points into deeper content.',
       'Browse the latest visual updates, then continue into related stories or supporting pages for more context.',
     ],
-    links: [
-      { label: 'Read articles', href: '/articles' },
-      { label: 'Explore listings', href: '/listings' },
-      { label: 'Open classifieds', href: '/classifieds' },
-    ],
+    links: [],
   },
   profile: {
     title: 'Profiles, identities, and public pages',
